@@ -36,7 +36,7 @@ public class Query5 {
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
         String ratelist = params.getRequired("ratelist");
 
-        //  --ratelist 250_300000_11000_300000
+        //  --ratelist 100_300000_1000_300000
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
                 .toArray();
@@ -67,7 +67,10 @@ public class Query5 {
 
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(rates))
                 .setParallelism(params.getInt("p-bid-source", 1))
-                .assignTimestampsAndWatermarks(new TimestampAssigner());//.slotSharingGroup("src");
+                .slotSharingGroup("src")
+                .assignTimestampsAndWatermarks(new TimestampAssigner())
+                .setParallelism(params.getInt("p-watermark", 1))
+                .slotSharingGroup("watermark");
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
@@ -76,13 +79,14 @@ public class Query5 {
                 //.window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(1)))
                 .timeWindow(Time.minutes(60), Time.minutes(1))
                 .aggregate(new CountBids())
-                .name("Sliding Window");
-        //.setParallelism(params.getInt("p-window", 1))
-        //.slotSharingGroup("window");
+                .name("Sliding Window")
+                .setParallelism(params.getInt("p-window", 1))
+                .slotSharingGroup("window");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-sink", 1));//.slotSharingGroup("sink");
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup("sink");
 
         // execute program
         env.execute("Nexmark Query5");
