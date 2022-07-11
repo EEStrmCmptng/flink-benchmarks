@@ -36,7 +36,7 @@ public class Query5 {
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
         String ratelist = params.getRequired("ratelist");
 
-        //  --ratelist 100_300000_1000_300000
+        //  --ratelist 5000_300000_1000_300000
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
                 .toArray();
@@ -67,8 +67,10 @@ public class Query5 {
 
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(rates))
                 .setParallelism(params.getInt("p-bid-source", 1))
+                .name("SourceBid")
                 .slotSharingGroup("src")
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
+                .name("TimestampAssigner")
                 .setParallelism(params.getInt("p-watermark", 1))
                 .slotSharingGroup("watermark");
 
@@ -79,7 +81,7 @@ public class Query5 {
                 //.window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(1)))
                 .timeWindow(Time.minutes(60), Time.minutes(1))
                 .aggregate(new CountBids())
-                .name("Sliding Window")
+                .name("SlidingWindow")
                 .setParallelism(params.getInt("p-window", 1))
                 .slotSharingGroup("window");
 
