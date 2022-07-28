@@ -47,7 +47,7 @@ public class Query1 {
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
         String ratelist = params.getRequired("ratelist");
 
-        //  --ratelist 250_300000_11000_300000
+        //  --ratelist 250_300000_11000_300000 --buffer-Timeout 20
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
                 .toArray();
@@ -81,25 +81,25 @@ public class Query1 {
         env.getConfig().setLatencyTrackingInterval(5000);
 
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(rates))
-                .setParallelism(params.getInt("p-source", 1))
+                .setParallelism(params.getInt("p-source", 2))
                 .name("Bids Source")
-                .uid("Bids-Source");
-                //.slotSharingGroup("src");
+                .uid("Bids-Source")
+                .slotSharingGroup("src");
         // SELECT auction, DOLTOEUR(price), bidder, datetime
         DataStream<Tuple4<Long, Long, Long, Long>> mapped = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
                     @Override
                     public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
                         return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
                     }
-                })//.setParallelism(params.getInt("p-map", 1))
+                }).setParallelism(params.getInt("p-map", 1))
                 .name("Mapper")
-                .uid("Mapper");//.slotSharingGroup("map");
+                .uid("Mapper").slotSharingGroup("map");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
                 .setParallelism(params.getInt("p-sink", 1))
                 .name("Latency Sink")
-                .uid("Latency-Sink");//.slotSharingGroup("sink");
+                .uid("Latency-Sink").slotSharingGroup("sink");
 
         // execute program
         env.execute("Nexmark Query1");
