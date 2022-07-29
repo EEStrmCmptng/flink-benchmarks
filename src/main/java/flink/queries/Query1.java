@@ -81,7 +81,7 @@ public class Query1 {
         env.getConfig().setLatencyTrackingInterval(5000);
 
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(rates))
-                .setParallelism(params.getInt("p-source", 2))
+                .setParallelism(params.getInt("p-source", 1))
                 .name("Bids Source")
                 .uid("Bids-Source")
                 .slotSharingGroup("src");
@@ -91,7 +91,7 @@ public class Query1 {
                     public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
                         return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
                     }
-                }).setParallelism(params.getInt("p-map", 1))
+                }).setParallelism(params.getInt("p-map", 2))
                 .name("Mapper")
                 .uid("Mapper").slotSharingGroup("map");
 
