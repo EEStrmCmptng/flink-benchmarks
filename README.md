@@ -23,6 +23,8 @@ see https://github.com/CASP-Systems-BU/cloud-provider-benchmarks
 
 Input parameter: event generating rate.  ```--ratelist [<rate>_<duration>]^n```
 
+the duration is in milliseconds
+
 e.g. ```--ratelist 250_300000_11000_300000```
 
 ### Query3: a stateful record-at-a-time two-input operator (incremental join) 
