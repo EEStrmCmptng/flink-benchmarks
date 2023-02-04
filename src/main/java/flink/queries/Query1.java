@@ -45,6 +45,7 @@ public class Query1 {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
+        final long bufftimeout = params.getLong("bufferTimeout", 10L);
         String ratelist = params.getRequired("ratelist");
 
         //  --ratelist 250_300000_11000_300000 --buffer-Timeout 20
@@ -53,19 +54,7 @@ public class Query1 {
                 .toArray();
         System.out.println(Arrays.toString(numbers));
         List<List<Integer>> rates = new ArrayList<>();
-        /* The internal list will be [rate, time in ms]
-//        rates.add(Arrays.asList(25000, 3000000));
-        int runningperiod=1*60*60*1000;    //1h
-        rates.add(Arrays.asList(150000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        rates.add(Arrays.asList(1000, runningperiod));
-        */
+        // The internal list will be [rate, time in ms]
         for (int i = 0; i < numbers.length - 1; i += 2) {
             rates.add(Arrays.asList(numbers[i], numbers[i + 1]));
         }
@@ -73,8 +62,9 @@ public class Query1 {
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        env.enableCheckpointing(5000, CheckpointingMode.AT_LEAST_ONCE);
-
+        //env.enableCheckpointing(5000, CheckpointingMode.AT_LEAST_ONCE);
+        env.setBufferTimeout(bufftimeout);
+        
         env.disableOperatorChaining();
 
         // enable latency tracking
