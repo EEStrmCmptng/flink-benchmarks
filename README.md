@@ -6,13 +6,7 @@ For energy efficient stream processing project
 
 ### compile
 
-Query1: `python3 build.py 1`
-
-Query3: `python3 build.py 3`
-
-Query5: `python3 build.py 5`
-
-Query8: `python3 build.py 8`
+`mvn clean package`
 
 
 ## Queries
