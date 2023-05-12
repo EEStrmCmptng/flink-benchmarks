@@ -25,7 +25,7 @@ public class Imgproc{
     public static void main(String[] args) throws Exception {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
-        String ratelist = params.get("ratelist", "620_900000");
+        String ratelist = params.get("ratelist", "620_900");
         final long bufftimeout = params.getLong("bufferTimeout", 10L);
         final int imgSize = params.getInt("imgSize", 128);
         final int batchSize = params.getInt("batchSize", 1);
@@ -33,7 +33,7 @@ public class Imgproc{
         final int ptra = params.getInt("ptra", 2);
         final int blurstep = params.getInt("blurstep", 2);
         final int warmUpRequestsNum = params.getInt("warmUpRequestsNum", 0);
-        // --ratelist 620_900000 --bufferTimeout -1 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 1 --ptra 2
+        // --ratelist 620_900 --bufferTimeout -1 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 1 --ptra 2
 
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
