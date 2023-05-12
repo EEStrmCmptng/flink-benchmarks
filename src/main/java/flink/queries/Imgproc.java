@@ -26,6 +26,7 @@ public class Imgproc{
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
         final int inputRatePerProducer = params.getInt("inputRate", 620);
+        final long bufftimeout = params.getLong("bufferTimeout", 10L);
         final int imgSize = params.getInt("imgSize", 128);
         final int batchSize = params.getInt("batchSize", 1);
         final int experimentTimeInSeconds = params.getInt("experimentTimeInSeconds", 1800);
@@ -37,14 +38,15 @@ public class Imgproc{
 
         Configuration configuration = new Configuration();
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+        env.setBufferTimeout(bufftimeout);
 
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        env.getConfig().setAutoWatermarkInterval(1000);
+//        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+//        env.getConfig().setAutoWatermarkInterval(1000);
 
-        //env.disableOperatorChaining();
+        env.disableOperatorChaining();
 
         // enable latency tracking
-        env.getConfig().setLatencyTrackingInterval(10000);
+        env.getConfig().setLatencyTrackingInterval(5000);
 
         // Read the input data stream
         System.out.println("Input producers: " + psrc);
