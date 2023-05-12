@@ -68,21 +68,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>Query5mod</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>Query5mod</finalName>
-                            <archive>
-                                <manifestEntries>
-                                    <program-class>flink.queries.Query5mod</program-class>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>Query8</id>
                         <phase>package</phase>
                         <goals>
@@ -93,36 +78,6 @@
                             <archive>
                                 <manifestEntries>
                                     <program-class>flink.queries.Query8</program-class>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>Query8mod</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>Query8mod</finalName>
-                            <archive>
-                                <manifestEntries>
-                                    <program-class>flink.queries.Query8mod</program-class>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>Query11</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>Query11</finalName>
-                            <archive>
-                                <manifestEntries>
-                                    <program-class>flink.queries.Query11</program-class>
                                 </manifestEntries>
                             </archive>
                         </configuration>

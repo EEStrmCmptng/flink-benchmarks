@@ -26,7 +26,7 @@ public class Imgproc{
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
         String ratelist = params.get("ratelist", "620_900000");
-        final long bufftimeout = params.getLong("bufferTimeout", 10L);
+        final long bufftimeout = params.getLong("bufferTimeout", -1);
         final int imgSize = params.getInt("imgSize", 128);
         final int batchSize = params.getInt("batchSize", 1);
         final int psrc = params.getInt("psrc", 1);

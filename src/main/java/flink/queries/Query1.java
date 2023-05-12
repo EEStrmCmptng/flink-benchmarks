@@ -45,10 +45,10 @@ public class Query1 {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
-        final long bufftimeout = params.getLong("bufferTimeout", 10L);
+        final long bufftimeout = params.getLong("bufferTimeout", -1);
         String ratelist = params.getRequired("ratelist");
 
-        //  --ratelist 250_300000_11000_300000 --buffer-Timeout 20
+        //  --ratelist 400000_900000_11000_300000 --bufferTimeout -1
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
                 .toArray();
