@@ -25,16 +25,27 @@ public class Imgproc{
     public static void main(String[] args) throws Exception {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
-        final int inputRatePerProducer = params.getInt("inputRate", 620);
+        String ratelist = params.get("ratelist", "620_900000");
         final long bufftimeout = params.getLong("bufferTimeout", 10L);
         final int imgSize = params.getInt("imgSize", 128);
         final int batchSize = params.getInt("batchSize", 1);
-        final int experimentTimeInSeconds = params.getInt("experimentTimeInSeconds", 1800);
         final int psrc = params.getInt("psrc", 1);
         final int ptra = params.getInt("ptra", 2);
         final int blurstep = params.getInt("blurstep", 2);
         final int warmUpRequestsNum = params.getInt("warmUpRequestsNum", 0);
-        // --inputRate 640 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 3 --ptra 6
+        // --ratelist 620_900000 --bufferTimeout -1 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 1 --ptra 2
+
+        int[] numbers = Arrays.stream(ratelist.split("_"))
+                .mapToInt(Integer::parseInt)
+                .toArray();
+        System.out.println(Arrays.toString(numbers));
+        List<List<Integer>> rates = new ArrayList<>();
+        // The internal list will be [rate, time in ms]
+        for (int i = 0; i < numbers.length - 1; i += 2) {
+            rates.add(Arrays.asList(numbers[i], numbers[i + 1]));
+        }
+        final int inputRatePerProducer = rates.get(0).get(0);
+        final int experimentTimeInSeconds = rates.get(0).get(1);
 
         Configuration configuration = new Configuration();
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
