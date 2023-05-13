@@ -30,7 +30,8 @@ public class Imgproc{
         final int imgSize = params.getInt("imgSize", 128);
         final int batchSize = params.getInt("batchSize", 1);
         final int psrc = params.getInt("psrc", 1);
-        final int ptra = params.getInt("ptra", 2);
+        final int pmap = params.getInt("pmap", 2);
+        final int psink = params.getInt("psink", 1);
         final int blurstep = params.getInt("blurstep", 2);
         final int warmUpRequestsNum = params.getInt("warmUpRequestsNum", 0);
         // --ratelist 620_900000 --bufferTimeout -1 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 1 --ptra 2
@@ -67,14 +68,14 @@ public class Imgproc{
         DataStream<Tuple2<ArrayList<ArrayList<Float>>, Long>> batches = env
                 .addSource(
                         new ImagesDataGeneratorSource(batchSize, experimentTimeInSeconds, warmUpRequestsNum, inputRatePerProducer, imgSize))
-                .setParallelism(psrc).slotSharingGroup("src")
+                .setParallelism(psrc).slotSharingGroup("psrc")
                 .name("Bids Source").uid("Bids-Source");
                 //.assignTimestampsAndWatermarks(new TimestampAssigner())
                 //.name("TimestampAssigner");
 
         SingleOutputStreamOperator<Tuple2<ArrayList<ArrayList<Float>>, Long>> transformed = batches
                 .process(new ImgTransformFunction(blurstep, imgSize))
-                .setParallelism(ptra).slotSharingGroup("tra").name("Mapper");
+                .setParallelism(pmap).slotSharingGroup("pmap").name("Mapper");
 
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
@@ -82,7 +83,7 @@ public class Imgproc{
                 .setParallelism(1)
                 .name("Latency Sink")
                 .uid("Latency-Sink")
-                .slotSharingGroup("sink");
+                .setParallelism(psink).slotSharingGroup("psink");
 
         System.out.println(env.getExecutionPlan());
         env.execute("Imgproc");
