@@ -12,6 +12,8 @@ public class ImgTransformFunction
         ProcessFunction<Tuple2<ArrayList<ArrayList<Float>>, Long>, Tuple2<ArrayList<ArrayList<Float>>, Long>> {
     private final int step;
     private final int imgSize;
+    private Integer InputSize;
+    private Integer OutputSize;
 
     public int getidx(int x, int y, int imgsize){
         int res=x*imgsize+y;
@@ -21,14 +23,22 @@ public class ImgTransformFunction
         return(res);
     }
 
-    public ImgTransformFunction(int step, int imgSize) {
+    public ImgTransformFunction(int step, int imgSize, int cmpSize) {
         this.step=step;
         this.imgSize=imgSize;
+        this.InputSize = imgSize;
+        this.OutputSize = cmpSize;
     }
 
-    @Override
-    public void processElement(Tuple2<ArrayList<ArrayList<Float>>, Long> inputBatches, Context context,
-                               Collector<Tuple2<ArrayList<ArrayList<Float>>, Long>> collector) throws Exception {
+    public int get1didx(int x, int y, int imgsize){
+        int res=x*imgsize+y;
+        if(res<0)
+            res+=imgsize*imgsize;
+        res=res%(imgsize*imgsize);
+        return(res);
+    }
+
+    public Tuple2<ArrayList<ArrayList<Float>>, Long> TransformOneBatch(Tuple2<ArrayList<ArrayList<Float>>, Long> inputBatches) {
         ArrayList<ArrayList<Float>> result = new ArrayList<>();
         int inputSize = inputBatches.f0.get(0).size();
         int batchSize = inputBatches.f0.size();
@@ -59,7 +69,35 @@ public class ImgTransformFunction
             result.add(inputImg);
         }
 
-        collector.collect(new Tuple2<>(result, inputBatches.f1));
+        return(new Tuple2<>(result, inputBatches.f1));
+    }
 
+    public Tuple2<ArrayList<ArrayList<Float>>, Long> CompressOneBatch(Tuple2<ArrayList<ArrayList<Float>>, Long> inputBatches) {
+        ArrayList<ArrayList<Float>> result = new ArrayList<>();
+        int inputSize = inputBatches.f0.get(0).size();
+        int batchSize = inputBatches.f0.size();
+        int outputSize = Math.min(OutputSize*OutputSize, inputSize);
+
+        for(int i=0; i<batchSize;i++){
+            ArrayList<Float> tmp = new ArrayList<>();
+            for(int dx=0; dx<OutputSize; dx++){
+                for(int dy=0; dy<OutputSize; dy++){
+                    int tx=(int) dx*InputSize/OutputSize;
+                    int ty=(int) dy*InputSize/OutputSize;
+                    tmp.add(inputBatches.f0.get(i).get(get1didx(tx, ty, InputSize)));
+                }
+            }
+            result.add(tmp);
+        }
+
+        return(new Tuple2<>(result, inputBatches.f1));
+    }
+
+    @Override
+    public void processElement(Tuple2<ArrayList<ArrayList<Float>>, Long> inputBatches, Context context,
+                               Collector<Tuple2<ArrayList<ArrayList<Float>>, Long>> collector) throws Exception {
+        Tuple2<ArrayList<ArrayList<Float>>, Long> ptra=TransformOneBatch(inputBatches);
+        Tuple2<ArrayList<ArrayList<Float>>, Long> pcmp=CompressOneBatch(ptra);
+        collector.collect(pcmp);
     }
 }

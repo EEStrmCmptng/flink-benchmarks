@@ -28,6 +28,7 @@ public class Imgproc{
         String ratelist = params.get("ratelist", "620_900000");
         final long bufftimeout = params.getLong("bufferTimeout", -1);
         final int imgSize = params.getInt("imgSize", 128);
+        final int cmpSize = params.getInt("cmpSize", 28);
         final int batchSize = params.getInt("batchSize", 1);
         final int psrc = params.getInt("psrc", 1);
         final int pmap = params.getInt("pmap", 2);
@@ -74,7 +75,7 @@ public class Imgproc{
                 //.name("TimestampAssigner");
 
         SingleOutputStreamOperator<Tuple2<ArrayList<ArrayList<Float>>, Long>> transformed = batches
-                .process(new ImgTransformFunction(blurstep, imgSize))
+                .process(new ImgTransformFunction(blurstep, imgSize, cmpSize))
                 .setParallelism(pmap).slotSharingGroup("pmap").name("Mapper");
 
 
