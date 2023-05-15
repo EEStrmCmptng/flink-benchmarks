@@ -2,10 +2,13 @@ package flink.sources;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class ImagesDataGeneratorSource extends RichParallelSourceFunction<Tuple2<ArrayList<ArrayList<Float>>, Long>> {
+    private static final Logger LOG = LoggerFactory.getLogger(ImagesDataGeneratorSource.class);
     private final ImagesDataGenerator generator;
     private volatile boolean running = true;
     private long eventsCountSoFar = 0;
@@ -16,6 +19,8 @@ public class ImagesDataGeneratorSource extends RichParallelSourceFunction<Tuple2
         this.generator = new ImagesDataGenerator(batchSize, experimentTimeInSeconds, warmupRequestsNum, imgSize);
         this.inputRate=inputRate;
         this.experimentTimeInSeconds=experimentTimeInSeconds;
+        LOG.info("ImagesDataGeneratorSource || inputRate={}  batchSize={}  experimentTimeInSeconds={}  imgSize={}  warmupRequestsNum={}",
+                inputRate, batchSize, experimentTimeInSeconds, imgSize, warmupRequestsNum);
     }
 
     @Override
