@@ -19,8 +19,6 @@ public class ImagesDataGeneratorSource extends RichParallelSourceFunction<Tuple2
         this.generator = new ImagesDataGenerator(batchSize, experimentTimeInSeconds, warmupRequestsNum, imgSize);
         this.inputRate=inputRate;
         this.experimentTimeInSeconds=experimentTimeInSeconds;
-        LOG.info("ImagesDataGeneratorSource || inputRate={}  batchSize={}  experimentTimeInSeconds={}  imgSize={}  warmupRequestsNum={}",
-                inputRate, batchSize, experimentTimeInSeconds, imgSize, warmupRequestsNum);
     }
 
     @Override

@@ -28,12 +28,12 @@ public class Imgproc{
         String ratelist = params.get("ratelist", "620_900000");
         final long bufftimeout = params.getLong("bufferTimeout", -1);
         final int imgSize = params.getInt("imgSize", 128);
-        final int cmpSize = params.getInt("cmpSize", 28);
+        final int cmpSize = params.getInt("cmpSize", 128);
         final int batchSize = params.getInt("batchSize", 1);
         final int psrc = params.getInt("psrc", 1);
         final int pmap = params.getInt("pmap", 2);
         final int psink = params.getInt("psink", 1);
-        final int blurstep = params.getInt("blurstep", 2);
+        final int blurstep = params.getInt("blurstep", 64);
         final int warmUpRequestsNum = params.getInt("warmUpRequestsNum", 0);
         // --ratelist 620_900000 --bufferTimeout -1 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 1 --ptra 2
 
@@ -63,8 +63,13 @@ public class Imgproc{
         env.getConfig().setLatencyTrackingInterval(5000);
 
         // Read the input data stream
-        System.out.println("Input producers: " + psrc);
-        System.out.println("Input rate per producer: " + inputRatePerProducer);
+        System.out.println("psrc: " + psrc);
+        System.out.println("inputRatePerProducer: " + inputRatePerProducer);
+        System.out.println("experimentTimeInSeconds: " + experimentTimeInSeconds);
+        System.out.println("batchSize: " + batchSize);
+        System.out.println("blurstep: " + blurstep);
+        System.out.println("imgSize: " + imgSize);
+        System.out.println("cmpSize: " + cmpSize);
 
         DataStream<Tuple2<ArrayList<ArrayList<Float>>, Long>> batches = env
                 .addSource(

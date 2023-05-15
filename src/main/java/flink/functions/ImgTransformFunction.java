@@ -10,7 +10,7 @@ import java.util.*;
 public class ImgTransformFunction
         extends
         ProcessFunction<Tuple2<ArrayList<ArrayList<Float>>, Long>, Tuple2<ArrayList<ArrayList<Float>>, Long>> {
-    private final int step;
+    private final int blurstep;
     private final int imgSize;
     private Integer InputSize;
     private Integer OutputSize;
@@ -23,8 +23,8 @@ public class ImgTransformFunction
         return(res);
     }
 
-    public ImgTransformFunction(int step, int imgSize, int cmpSize) {
-        this.step=step;
+    public ImgTransformFunction(int blurstep, int imgSize, int cmpSize) {
+        this.blurstep=blurstep;
         this.imgSize=imgSize;
         this.InputSize = imgSize;
         this.OutputSize = cmpSize;
@@ -45,8 +45,8 @@ public class ImgTransformFunction
 
         for(int bi=0; bi<batchSize; bi++){
             ArrayList<Float> inputImg = inputBatches.f0.get(bi);
-            for (int i=0;i<this.imgSize;i+=this.step){
-                for(int j=0;j<this.imgSize;j+=this.step){
+            for (int i=0;i<this.imgSize;i+=this.blurstep){
+                for(int j=0;j<this.imgSize;j+=this.blurstep){
                     ArrayList<Integer> idxavg = new ArrayList<>(Arrays.asList(getidx(i,j,this.imgSize),
                             getidx(i-1,j-1,this.imgSize),
                             getidx(i-1,j,this.imgSize),
@@ -97,7 +97,12 @@ public class ImgTransformFunction
     public void processElement(Tuple2<ArrayList<ArrayList<Float>>, Long> inputBatches, Context context,
                                Collector<Tuple2<ArrayList<ArrayList<Float>>, Long>> collector) throws Exception {
         Tuple2<ArrayList<ArrayList<Float>>, Long> ptra=TransformOneBatch(inputBatches);
-        Tuple2<ArrayList<ArrayList<Float>>, Long> pcmp=CompressOneBatch(ptra);
-        collector.collect(pcmp);
+        if(!Objects.equals(this.InputSize, this.OutputSize)) {
+            Tuple2<ArrayList<ArrayList<Float>>, Long> pcmp = CompressOneBatch(ptra);
+            collector.collect(pcmp);
+        }
+        else {
+            collector.collect(ptra);
+        }
     }
 }
