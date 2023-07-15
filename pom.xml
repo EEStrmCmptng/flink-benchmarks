@@ -97,6 +97,23 @@
                             </archive>
                         </configuration>
                     </execution>
+
+                    <execution>
+                        <id>Query1tsc</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>Query1tsc</finalName>
+                            <archive>
+                                <manifestEntries>
+                                    <program-class>flink.queries.Query1tsc</program-class>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+
                 </executions>
             </plugin>
         </plugins>
