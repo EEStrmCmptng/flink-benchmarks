@@ -4,11 +4,9 @@ For energy efficient stream processing project
 
 ## Usage
 
-### compile
-
-`mvn clean package`
-
 ### tsclog
+
+put tsclog library into `resources` before compiling 
 
 ```
 git clone git@github.com:jappavoo/tsclog.git
@@ -16,6 +14,10 @@ cd tsclog
 make
 cp tsclog/libtsclog.so ./src/main/resources/libtsclog.so
 ```
+
+### compile
+
+`mvn clean package`
 
 ## Queries
 
