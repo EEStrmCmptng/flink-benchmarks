@@ -8,6 +8,14 @@ For energy efficient stream processing project
 
 `mvn clean package`
 
+### tsclog
+
+```
+git clone git@github.com:jappavoo/tsclog.git
+cd tsclog
+make
+cp tsclog/libtsclog.so ./src/main/resources/libtsclog.so
+```
 
 ## Queries
 

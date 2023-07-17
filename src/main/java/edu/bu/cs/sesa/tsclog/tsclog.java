@@ -1,6 +1,10 @@
 package edu.bu.cs.sesa.tsclog;
 
 
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class tsclog
 {
     public static native int availcpus();
@@ -22,7 +26,31 @@ public class tsclog
     private long logptr = 0;
     
     static {
-	System.loadLibrary("tsclog");
+        try {
+            System.load(extractLibrary("tsclog"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String extractLibrary(String name) throws IOException {
+        Path libPath = Paths.get("/" + System.mapLibraryName(name));
+
+        // Create temp file.
+        File temp = File.createTempFile(name, ".tmp");
+        temp.deleteOnExit(); // The file is deleted when JVM exits.
+
+        // Write the library to the temp file.
+        try (InputStream in = tsclog.class.getResourceAsStream(libPath.toString());
+             OutputStream out = new FileOutputStream(temp)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = in.read(buffer)) != -1) {
+                out.write(buffer, 0, length);
+            }
+        }
+
+        return temp.getAbsolutePath();
     }
 
     public tsclog(String name, long n, int valsperentry, String valhdrs) {
