@@ -6,7 +6,7 @@ For energy efficient stream processing project
 
 ### tsclog
 
-put tsclog library into `resources` before compiling 
+put tsclog library into `resources` before compiling jar
 
 ```
 git clone git@github.com:jappavoo/tsclog.git
