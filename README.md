@@ -29,6 +29,10 @@ the duration is in **milliseconds**
 
 e.g. ```--ratelist 250_300000_11000_300000```
 
+### Query1tsc
+
+Query1 with tsclog
+
 ### Query3: a stateful record-at-a-time two-input operator (incremental join) 
 
 contains 2 sources: auctions and persons
