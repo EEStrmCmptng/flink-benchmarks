@@ -44,8 +44,8 @@ public class DummyLatencyCountingSink<T> extends StreamSink<T> {
 
     @Override
     public void processLatencyMarker(LatencyMarker latencyMarker) {
-        logger.warn("%{}%{}%{}%{}%{}%{}", "latency",
-                System.currentTimeMillis() - latencyMarker.getMarkedTime(), System.currentTimeMillis(), latencyMarker.getMarkedTime(),
-                latencyMarker.getSubtaskIndex(), getRuntimeContext().getIndexOfThisSubtask());
+        // logger.warn("%{}%{}%{}%{}%{}%{}", "latency",
+        //         System.currentTimeMillis() - latencyMarker.getMarkedTime(), System.currentTimeMillis(), latencyMarker.getMarkedTime(),
+        //         latencyMarker.getSubtaskIndex(), getRuntimeContext().getIndexOfThisSubtask());
     }
 }
