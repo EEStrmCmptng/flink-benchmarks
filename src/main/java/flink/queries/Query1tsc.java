@@ -43,7 +43,8 @@ public class Query1tsc {
 
     private static final Logger logger = LoggerFactory.getLogger(Query1tsc.class);
     private static float exchangeRate;
-
+    //private static int[] pincores;
+    
     public static void main(String[] args) throws Exception {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
@@ -51,11 +52,22 @@ public class Query1tsc {
         final long bufftimeout = params.getLong("bufferTimeout", -1);
         String ratelist = params.getRequired("ratelist");
 
+	// pin cores
+	/*String spincores = params.get("pincores", "");
+	if (spincores != "") {
+	    pincores = Arrays.stream(spincores.split("_"))
+		.mapToInt(Integer::parseInt)
+		.toArray();
+	    System.out.println("pincores: "+Arrays.toString(pincores));
+	} else {
+	    System.out.println("No cores to pin");
+	    }*/
+	
         // --ratelist 400000_900000_11000_300000 --bufferTimeout -1
         int[] numbers = Arrays.stream(ratelist.split("_"))
-                .mapToInt(Integer::parseInt)
-                .toArray();
-        System.out.println(Arrays.toString(numbers));
+	    .mapToInt(Integer::parseInt)
+	    .toArray();
+        System.out.println("ratelist: "+Arrays.toString(numbers));
         List<List<Integer>> rates = new ArrayList<>();
         // The internal list will be [rate, time in ms]
         for (int i = 0; i < numbers.length - 1; i += 2) {
@@ -66,12 +78,11 @@ public class Query1tsc {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         //env.enableCheckpointing(5000, CheckpointingMode.AT_LEAST_ONCE);
-        env.setBufferTimeout(bufftimeout);
-        
+        env.setBufferTimeout(bufftimeout);        
         env.disableOperatorChaining();
 
         // enable latency tracking
-        env.getConfig().setLatencyTrackingInterval(5000);
+        //env.getConfig().setLatencyTrackingInterval(5000);
 
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(rates))
                 .setParallelism(params.getInt("p-source", 1))
@@ -96,27 +107,83 @@ public class Query1tsc {
 
     public static final class tscMapper extends RichFlatMapFunction<Bid, Tuple4<Long, Long, Long, Long>> {
         // TODO: use open()/close() under RichMapFunction to create/clean a mem buffer(to write log to) before/after init Mapper
-        int subtaskIndex;
+        //int subtaskIndex;
 
         @Override
         public void flatMap(Bid _in, Collector<Tuple4<Long, Long, Long, Long>> _out) throws Exception {
-            tsclogging();
+	    //System.out.println("flatMap cpu: " + tsclog.cpu());
             _out.collect(new Tuple4<>(_in.auction, dollarToEuro(_in.price, exchangeRate), _in.bidder, _in.dateTime));
         }
-
         @Override
         public void open(Configuration cfg){
-            subtaskIndex = getRuntimeContext().getIndexOfThisSubtask();
-            logger.info("mapper"+subtaskIndex+"  open");
-        }
+	    int avail = tsclog.availcpus();
+	    int cpu = tsclog.cpu();
+	    int tid = tsclog.tid();
+	    int subtaskIndex = getRuntimeContext().getIndexOfThisSubtask();
+	    int pcpu = 0;
+	    
+	    System.out.println("[PRE PIN]: available cpus: "+avail+" open() cpu: "+cpu+" tid: "+tid+" subtaskIndex: "+subtaskIndex);
+	    System.out.println("---------------------------------------");
 
+	    /*switch(subtaskIndex) {
+	    case 0:
+		pcpu = 1;
+		break;
+	    case 1:
+		pcpu = 3;
+		break;
+	    case 2:
+		pcpu = 5;
+		break;
+	    case 3:
+		pcpu = 7;
+		break;
+	    case 4:
+		pcpu = 9;
+		break;
+	    case 5:
+		pcpu = 11;
+		break;
+	    case 6:
+		pcpu = 13;
+		break;
+	    case 7:
+		pcpu = 15;
+		break;
+	    default:
+		break;
+	    }
+	    
+	    System.out.println("[PIN]: Pinning to core " + pcpu);
+	    tsclog.pin(pcpu);
+	    System.out.println("---------------------------------------");*/
+		
+	    /*System.out.println(pincores.length);
+	    
+	    if (pincores.length > 0) {
+	    System.out.println("[PIN]: Pinning to core " + pincores[subtaskIndex]);
+		tsclog.pin(pincores[subtaskIndex]);
+		System.out.println("---------------------------------------");
+		}*/
+
+	    System.out.println("[PIN]: Pinning to core " + subtaskIndex);
+	    tsclog.pin(subtaskIndex);
+	    System.out.println("---------------------------------------");
+	    
+	    avail = tsclog.availcpus();
+	    cpu = tsclog.cpu();
+	    tid = tsclog.tid();
+	    System.out.println("[POST PIN]: available cpus: " + avail + " open() cpu: " + cpu + " tid: " + tid);
+	    System.out.println("---------------------------------------");
+	}
+	/*
         @Override
         public void close(){
             logger.info("mapper"+subtaskIndex+"  close");
-        }
+        }*/
     }
 
-    private static void tsclogging(){
+    /*private static void tsclogging(){
         int avail = tsclog.availcpus();
         int cpu = tsclog.cpu();
         int tid = tsclog.tid();
@@ -149,7 +216,7 @@ public class Query1tsc {
         for (int i=0; i<10; i++) {
             log1.log1(i);
         }
-    }
+	}*/
 
     private static long dollarToEuro(long dollarPrice, float rate) {
         return (long) (rate * dollarPrice);
