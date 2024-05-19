@@ -35,6 +35,7 @@ public class Query5 {
         final ParameterTool params = ParameterTool.fromArgs(args);
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
         String ratelist = params.getRequired("ratelist");
+        long windowlength = params.getLong("windowlength");
 
         //  --ratelist 5000_300000_1000_300000
         int[] numbers = Arrays.stream(ratelist.split("_"))
@@ -53,12 +54,15 @@ public class Query5 {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
 
-        env.enableCheckpointing(10000, CheckpointingMode.EXACTLY_ONCE);
+        if (params.getBoolean("checkpointingenabled")) {
+            long checkpointingInterval = params.getLong("checkpointinginterval");
+            CheckpointingMode checkpointingMode = CheckpointingMode.valueOf(params.getRequired("checkpointingmode"));
+            env.enableCheckpointing(checkpointingInterval, checkpointingMode);
+            env.getCheckpointConfig().enableUnalignedCheckpoints();
+            env.getCheckpointConfig().setCheckpointTimeout(100000);
+        }
 
-        env.getCheckpointConfig().enableUnalignedCheckpoints();
-        env.getCheckpointConfig().setCheckpointTimeout(100000);
-
-        env.disableOperatorChaining();
+        // env.disableOperatorChaining();
 
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(5000);
@@ -66,20 +70,20 @@ public class Query5 {
         //final int srcRate = params.getInt("srcRate", 100000);
 
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(rates))
-                .setParallelism(params.getInt("p-bid-source", 1))
-                .name("SourceBid")
-                .slotSharingGroup("src")
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
-                .name("TimestampAssigner")
-                .setParallelism(params.getInt("p-watermark", 1))
-                .slotSharingGroup("watermark");
+                .setParallelism(params.getInt("p-bid-source", 1))
+                .name("SourceBid");
+              //  .slotSharingGroup("src");
+              //  .name("TimestampAssigner")
+              //  .setParallelism(params.getInt("p-watermark", 1));
+              //  .slotSharingGroup("watermark");
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
         // GROUP BY B1.auction
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy((KeySelector<Bid, Long>) bid -> bid.auction)
                 //.window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(1)))
-                .timeWindow(Time.minutes(60), Time.minutes(1))
+                .timeWindow(Time.minutes(windowlength), Time.minutes(1))
                 .aggregate(new CountBids())
                 .name("SlidingWindow")
                 .setParallelism(params.getInt("p-window", 1))
@@ -136,3 +140,4 @@ public class Query5 {
         }
     }
 }
+
