@@ -73,7 +73,7 @@ public class Imgproc{
 
         DataStream<Tuple2<ArrayList<ArrayList<Float>>, Long>> batches = env
                 .addSource(
-                        new ImagesDataGeneratorSource(batchSize, experimentTimeInSeconds, warmUpRequestsNum, inputRatePerProducer, imgSize))
+                        new ImagesDataGeneratorSource(batchSize, experimentTimeInSeconds, warmUpRequestsNum, inputRatePerProducer, imgSize, ratelist))
                 .setParallelism(psrc).slotSharingGroup("psrc")
                 .name("Bids Source").uid("Bids-Source");
                 //.assignTimestampsAndWatermarks(new TimestampAssigner())

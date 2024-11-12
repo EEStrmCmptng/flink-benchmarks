@@ -51,8 +51,8 @@ public class ImagesDataGenerator implements Iterator<Tuple2<ArrayList<ArrayList<
         for (int imgNum = 0; imgNum < this.batchSize; imgNum++) {
             // generate 0-filled image
             ArrayList<Float> newImage = new ArrayList<Float>(Collections.nCopies(IMAGE_SIZE * IMAGE_SIZE, 6.0f));
-            int randomValIndex = rand.nextInt(IMAGE_SIZE * IMAGE_SIZE);
-            newImage.set(randomValIndex, rand.nextFloat());
+//            int randomValIndex = rand.nextInt(IMAGE_SIZE * IMAGE_SIZE);
+//            newImage.set(randomValIndex, rand.nextFloat());
             // append the new image to the batch
             batch.add(newImage);
         }
