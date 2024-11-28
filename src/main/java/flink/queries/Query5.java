@@ -35,7 +35,7 @@ public class Query5 {
         final ParameterTool params = ParameterTool.fromArgs(args);
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
         String ratelist = params.getRequired("ratelist");
-        long windowlength = params.getLong("windowlength");
+        long windowlength = params.getLong("windowlength", 60);
 
         //  --ratelist 5000_300000_1000_300000
         int[] numbers = Arrays.stream(ratelist.split("_"))
@@ -54,9 +54,9 @@ public class Query5 {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
 
-        if (params.getBoolean("checkpointingenabled")) {
+        if (params.getBoolean("checkpointingenabled", false)) {
             long checkpointingInterval = params.getLong("checkpointinginterval");
-            CheckpointingMode checkpointingMode = CheckpointingMode.valueOf(params.getRequired("checkpointingmode"));
+            CheckpointingMode checkpointingMode = CheckpointingMode.valueOf(params.get("checkpointingmode", "EXACTLY_ONCE"));
             env.enableCheckpointing(checkpointingInterval, checkpointingMode);
             env.getCheckpointConfig().enableUnalignedCheckpoints();
             env.getCheckpointConfig().setCheckpointTimeout(100000);
@@ -70,11 +70,10 @@ public class Query5 {
         //final int srcRate = params.getInt("srcRate", 100000);
 
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(rates))
-                .assignTimestampsAndWatermarks(new TimestampAssigner())
                 .setParallelism(params.getInt("p-bid-source", 1))
-                .name("SourceBid");
-              //  .slotSharingGroup("src");
-              //  .name("TimestampAssigner")
+                .name("SourceBid")
+                .assignTimestampsAndWatermarks(new TimestampAssigner())
+                .name("TimestampAssigner");
               //  .setParallelism(params.getInt("p-watermark", 1));
               //  .slotSharingGroup("watermark");
 
