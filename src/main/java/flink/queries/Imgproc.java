@@ -25,7 +25,7 @@ public class Imgproc{
     public static void main(String[] args) throws Exception {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
-        String ratelist = params.get("ratelist", "620_900000");
+        String ratelist = params.get("ratelist", "620_900");
         final long bufftimeout = params.getLong("bufferTimeout", -1);
         final int imgSize = params.getInt("imgSize", 128);
         final int cmpSize = params.getInt("cmpSize", 128);
@@ -47,8 +47,7 @@ public class Imgproc{
             rates.add(Arrays.asList(numbers[i], numbers[i + 1]));
         }
         final int inputRatePerProducer = rates.get(0).get(0);
-        final int experimentTimeInMilliSeconds = rates.get(0).get(1);
-        final int experimentTimeInSeconds = experimentTimeInMilliSeconds/1000;
+        final int experimentTimeInSeconds = rates.get(0).get(1);
 
         Configuration configuration = new Configuration();
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
