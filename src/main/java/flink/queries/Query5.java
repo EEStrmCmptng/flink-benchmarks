@@ -37,7 +37,7 @@ public class Query5 {
         String ratelist = params.getRequired("ratelist");
         long windowlength = params.getLong("windowlength", 60);
 
-        //  --ratelist 5000_300000_1000_300000
+        //  --ratelist 5000_300_1000_300
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
                 .toArray();

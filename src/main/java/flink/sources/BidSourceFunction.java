@@ -30,9 +30,8 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * A ParallelSourceFunction that generates Nexmark Bid data
@@ -115,36 +114,35 @@ public class BidSourceFunction extends RichParallelSourceFunction<Bid> implement
     public void run(SourceContext<Bid> ctx) throws Exception {
         for (List<Integer> rate : this.rates) {
             int currentRate = rate.get(0);
-            int currentDuration = rate.get(1);
+            int currentDuration = rate.get(1);    //sec
             Date finishTime = new Date();
+            System.out.println(rate.toString() + " start at " + new Long(System.currentTimeMillis()).toString());
 
-            while (running && new Date().getTime() - finishTime.getTime() < currentDuration) {
-                long emitStartTime = System.currentTimeMillis();
-
-                for (int i = 0; i < currentRate; i++) {
-
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            
+            final Runnable beeper1 = new Runnable() {
+                public void run() {
                     long nextId = nextId();
                     Random rnd = new Random(nextId);
-
                     // When, in event time, we should generate the event. Monotonic.
                     long eventTimestamp = config.timestampAndInterEventDelayUsForEvent(config.nextEventNumber(eventsCountSoFar)).getKey();
-
                     ctx.collect(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config));
-                    eventsCountSoFar++;
+                    eventsCountSoFar++; 
                 }
-
-                // Sleep for the rest of time slice if needed
-                long emitTime = System.currentTimeMillis() - emitStartTime;
-                if (emitTime < 1000) {
-                    Thread.sleep(1000 - emitTime);
+            };
+            
+            long eventDelay=1000*1000*1000/currentRate;
+            final ScheduledFuture<?> beeperHandle = scheduler.scheduleAtFixedRate(beeper1, 0, eventDelay, TimeUnit.NANOSECONDS);
+            scheduler.schedule(new Runnable() {
+                public void run() {
+                    beeperHandle.cancel(true); 
+                    scheduler.shutdown();
                 }
+            }, currentDuration, TimeUnit.SECONDS);
+            
+            Thread.sleep(currentDuration*1000);    //Ms
 
-//                Increment rate counter
-//                Date finishTime = new Date();
-//                if (finishTime.getTime() - sourceStartTime.getTime() <= 0){
-//                    currentRateCount++;
-//                }
-            }
+            System.out.println(rate.toString() + "  done at " + new Long(System.currentTimeMillis()).toString());
         }
     }
 

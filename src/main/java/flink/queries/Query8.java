@@ -40,7 +40,7 @@ public class Query8 {
         final ParameterTool params = ParameterTool.fromArgs(args);
         String ratelist = params.getRequired("ratelist");
 
-        //  --ratelist 50000_300000_10000_300000_1000_600000_200_600000
+        //  --ratelist 50000_300_10000_300_1000_600_200_600
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
                 .toArray();

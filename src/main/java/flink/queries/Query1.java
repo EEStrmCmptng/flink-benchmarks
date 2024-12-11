@@ -48,7 +48,7 @@ public class Query1 {
         final long bufftimeout = params.getLong("bufferTimeout", -1);
         String ratelist = params.getRequired("ratelist");
 
-        //  --ratelist 400000_900000_11000_300000 --bufferTimeout -1
+        //  --ratelist 40000_300_11000_300 --bufferTimeout -1    numrecordsoutpersec
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
                 .toArray();

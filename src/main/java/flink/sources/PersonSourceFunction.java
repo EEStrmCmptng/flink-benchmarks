@@ -21,6 +21,7 @@ package flink.sources;
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
 import org.apache.beam.sdk.nexmark.model.Person;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
+import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
 import org.apache.beam.sdk.nexmark.sources.generator.model.PersonGenerator;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
@@ -31,9 +32,8 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.*;
 
 ;
 
@@ -67,32 +67,37 @@ public class PersonSourceFunction extends RichParallelSourceFunction<Person> imp
 
     @Override
     public void run(SourceContext<Person> ctx) throws Exception {
-        for (int currentRateCount = 0; currentRateCount < this.rates.size(); currentRateCount++) {
-            int currentRate = this.rates.get(currentRateCount).get(0);
-            int currentDuration = this.rates.get(currentRateCount).get(1);
+        for (List<Integer> rate : this.rates) {
+            int currentRate = rate.get(0);
+            int currentDuration = rate.get(1);    //sec
             Date finishTime = new Date();
+            System.out.println(rate.toString() + " start at " + new Long(System.currentTimeMillis()).toString());
 
-            while (running && new Date().getTime() - finishTime.getTime() < currentDuration) {
-                long emitStartTime = System.currentTimeMillis();
-
-                for (int i = 0; i < currentRate; i++) {
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            
+            final Runnable beeper1 = new Runnable() {
+                public void run() {
                     long nextId = nextId();
                     Random rnd = new Random(nextId);
-
                     // When, in event time, we should generate the event. Monotonic.
-                    long eventTimestamp =
-                            config.timestampAndInterEventDelayUsForEvent(config.nextEventNumber(eventsCountSoFar)).getKey();
-
+                    long eventTimestamp = config.timestampAndInterEventDelayUsForEvent(config.nextEventNumber(eventsCountSoFar)).getKey();
                     ctx.collect(PersonGenerator.nextPerson(nextId, rnd, eventTimestamp, config));
                     eventsCountSoFar++;
                 }
-
-                // Sleep for the rest of timeslice if needed
-                long emitTime = System.currentTimeMillis() - emitStartTime;
-                if (emitTime < 1000) {
-                    Thread.sleep(1000 - emitTime);
+            };
+            
+            long eventDelay=1000*1000*1000/currentRate;
+            final ScheduledFuture<?> beeperHandle = scheduler.scheduleAtFixedRate(beeper1, 0, eventDelay, TimeUnit.NANOSECONDS);
+            scheduler.schedule(new Runnable() {
+                public void run() {
+                    beeperHandle.cancel(true); 
+                    scheduler.shutdown();
                 }
-            }
+            }, currentDuration, TimeUnit.SECONDS);
+            
+            Thread.sleep(currentDuration*1000);    //Ms
+
+            System.out.println(rate.toString() + "  done at " + new Long(System.currentTimeMillis()).toString());
         }
     }
 

@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class ImagesDataGeneratorSource extends RichParallelSourceFunction<Tuple2<ArrayList<ArrayList<Float>>, Long>> implements CheckpointedFunction {
@@ -53,23 +54,31 @@ public class ImagesDataGeneratorSource extends RichParallelSourceFunction<Tuple2
         for (List<Integer> rate : this.updatedRates) {
             int currentRate = rate.get(0);
             int currentDuration = rate.get(1);
-
             Date finishTime = new Date();
 
-            while (running && new Date().getTime() - finishTime.getTime() < currentDuration * 1000) {
-                long emitStartTime = System.currentTimeMillis();
+            System.out.println(rate.toString() + " start at " + new Long(System.currentTimeMillis()).toString());
 
-                for (int i = 0; i < currentRate; i++) {
-                    sourceContext.collect(this.generator.next());
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            
+            final Runnable beeper1 = new Runnable() {
+                public void run() {
+                    sourceContext.collect(ImagesDataGeneratorSource.this.generator.next());
                     eventsCountSoFar++;
                 }
-
-                // Sleep for the rest of time slice if needed
-                long emitTime = System.currentTimeMillis() - emitStartTime;
-                if (emitTime < 1000) {
-                    Thread.sleep(1000 - emitTime);
+            };
+            
+            long eventDelay=1000*1000*1000/currentRate;
+            final ScheduledFuture<?> beeperHandle = scheduler.scheduleAtFixedRate(beeper1, 0, eventDelay, TimeUnit.NANOSECONDS);
+            scheduler.schedule(new Runnable() {
+                public void run() {
+                    beeperHandle.cancel(true); 
+                    scheduler.shutdown();
                 }
-            }
+            }, currentDuration, TimeUnit.SECONDS);
+            
+            Thread.sleep(currentDuration*1000);    //Ms
+
+            System.out.println(rate.toString() + "  done at " + new Long(System.currentTimeMillis()).toString());
         }
     }
 

@@ -63,7 +63,7 @@ public class Query1tsc {
 	    System.out.println("No cores to pin");
 	    }*/
 	
-        // --ratelist 400000_900000_11000_300000 --bufferTimeout -1
+        // --ratelist 400000_900_11000_300 --bufferTimeout -1
         int[] numbers = Arrays.stream(ratelist.split("_"))
 	    .mapToInt(Integer::parseInt)
 	    .toArray();

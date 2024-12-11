@@ -35,7 +35,7 @@ public class Imgproc{
         final int psink = params.getInt("psink", 1);
         final int blurstep = params.getInt("blurstep", 64);
         final int warmUpRequestsNum = params.getInt("warmUpRequestsNum", 0);
-        // --ratelist 620_900000 --bufferTimeout -1 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 1 --ptra 2
+        // --ratelist 620_900_1000_300 --bufferTimeout -1 --imgSize 128 --batchSize 1 --blurstep 2 --psrc 1 --pmap 8
 
         int[] numbers = Arrays.stream(ratelist.split("_"))
                 .mapToInt(Integer::parseInt)
